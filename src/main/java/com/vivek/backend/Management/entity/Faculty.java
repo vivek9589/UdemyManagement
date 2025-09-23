@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class Faculty {
 
 
     @OneToMany(mappedBy = "faculty" , cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Course> courses;
 
 

@@ -1,6 +1,8 @@
 package com.vivek.backend.Management.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vivek.backend.Management.enums.EnrollmentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,10 +30,12 @@ public class Enrollment {
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JsonIgnore
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "courseId")
+    @JsonBackReference
     private Course course;
 
 

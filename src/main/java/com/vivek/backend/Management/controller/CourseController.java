@@ -9,6 +9,7 @@ import com.vivek.backend.Management.dto.CourseRequestDto;
 import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.service.CourseService;
+import net.minidev.json.annotate.JsonIgnore;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
