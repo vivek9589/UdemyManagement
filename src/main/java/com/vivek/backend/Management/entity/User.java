@@ -1,6 +1,7 @@
 package com.vivek.backend.Management.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vivek.backend.Management.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ public class User {
 
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Enrollment enrollment;
 
 

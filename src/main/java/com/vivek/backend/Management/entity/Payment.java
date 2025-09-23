@@ -1,6 +1,7 @@
 package com.vivek.backend.Management.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class Payment {
     private String paymentMethod;
 
     @OneToOne(mappedBy = "payment")
+    @JsonIgnore
     private Enrollment enrollment;
 
 

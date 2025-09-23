@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -37,9 +38,11 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "faculty_id", nullable = false)
+    @JsonIgnore
     private Faculty faculty;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Enrollment> enrollments;
 
 
