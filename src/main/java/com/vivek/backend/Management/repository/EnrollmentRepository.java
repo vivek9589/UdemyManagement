@@ -18,6 +18,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment,Long> {
                                                 */
 
     Enrollment findByUser_UserId(Long userId);
+    void deleteByUser_UserId(Long userId);
 
+    void deleteByEnrollmentId(Long enrollmentId);
 
 }

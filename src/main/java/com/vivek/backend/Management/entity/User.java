@@ -42,7 +42,7 @@ public class User {
     private Role role;
 
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user")
     @JsonIgnore
     private Enrollment enrollment;
 

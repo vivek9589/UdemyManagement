@@ -26,7 +26,7 @@ public class Enrollment {
     private LocalDate expiresAt;
 
     @Enumerated(EnumType.STRING)
-    private EnrollmentStatus status;  // status (ACTIVE, TRIAL, EXPIRED, CANCELLED)
+    private EnrollmentStatus status;  // status (TRIAL,   MONTHLY ,HALFYEARLY,  YEARLY)
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
@@ -35,13 +35,12 @@ public class Enrollment {
 
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "courseId")
-    @JsonBackReference
+    @JsonIgnore
     private Course course;
 
 
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "payment_id", referencedColumnName = "paymentId")
+    @OneToOne(mappedBy = "enrollment", cascade = CascadeType.ALL, orphanRemoval = true)
     private Payment payment;
 
 

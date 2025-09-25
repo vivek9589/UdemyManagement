@@ -11,6 +11,7 @@ import com.vivek.backend.Management.service.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +19,14 @@ import java.util.List;
 
 /*
 EnrollmentController
-    POST /enrollments → enroll user in course  -> create enrollment
+    POST /enrollments → enroll user in course  -> create enrollment / subscribe plan
 
     GET /enrollments/{userId} → list user's enrollments
 
     GET /enrollments/access/{courseId} → check if current user has access
  */
 
-
+ // (start subscription , cancel subscription ,get current plan/status)
 
 @RestController
 @RequestMapping("/enrollments")
@@ -49,7 +50,8 @@ public class EnrollmentController {
     // POST /enrollments → enroll user in course
 
 
-    @PostMapping
+
+    @PostMapping("/create")
     public ResponseEntity<String> createEnrollment(@RequestBody EnrollmentRequestDto dto) {
          enrollmentService.mapToEntity(dto, userRepo, courseRepo);
 
@@ -57,9 +59,12 @@ public class EnrollmentController {
     }
 
 
-    //  GET /enrollments/{userId} → list user's enrollments
 
-    @GetMapping
+
+    // admin access for all enrollments    // user can see only their enrollment
+
+
+    @GetMapping("/all")
     public ResponseEntity<List<Enrollment>> getAllEnrollments()
     {
        List<Enrollment> enrollments=  enrollmentService.getAllEnrollment();
@@ -78,10 +83,29 @@ public class EnrollmentController {
         List<Course> courses =  enrollmentService.getAccess(user_id);
 
         return new ResponseEntity<>(courses,HttpStatus.OK);
-
-
-
     }
+
+
+    // get current plan/status
+
+    @GetMapping("/details/{id}")
+    public ResponseEntity<Enrollment> getEnrollmentById(@PathVariable Long id)
+    {
+        Enrollment enrollment = enrollmentService.getEnrollmentById(id);
+
+        return new ResponseEntity<>(enrollment,HttpStatus.OK);
+    }
+
+
+    // cancel subscription
+    @DeleteMapping("/cancel/{enrollmentId}")
+    public ResponseEntity<String> cancelSubscription(@PathVariable Long enrollmentId)
+    {
+        enrollmentService.cancelSubscription(enrollmentId);
+
+        return ResponseEntity.ok("Subscription cancelled successfully");
+    }
+
 
 
 
