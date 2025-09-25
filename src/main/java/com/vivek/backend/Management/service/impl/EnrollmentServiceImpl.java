@@ -6,14 +6,14 @@ import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.entity.Enrollment;
 import com.vivek.backend.Management.entity.Payment;
 import com.vivek.backend.Management.entity.User;
-import com.vivek.backend.Management.enums.EnrollmentStatus;
 import com.vivek.backend.Management.repository.CourseRepository;
 import com.vivek.backend.Management.repository.EnrollmentRepository;
+import com.vivek.backend.Management.repository.PaymentRepository;
 import com.vivek.backend.Management.repository.UserRepository;
 import com.vivek.backend.Management.service.CourseService;
 import com.vivek.backend.Management.service.EnrollmentService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,74 +24,76 @@ import java.util.List;
 @Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
+    @Autowired
     private final EnrollmentRepository enrollmentRepository;
+
+    @Autowired
+    private final PaymentRepository paymentRepository;
 
     @Autowired
     CourseService courseService;
 
-    public EnrollmentServiceImpl(EnrollmentRepository enrollmentRepository) {
+    public EnrollmentServiceImpl(EnrollmentRepository enrollmentRepository, PaymentRepository paymentRepository) {
         this.enrollmentRepository = enrollmentRepository;
+        this.paymentRepository = paymentRepository;
     }
 
-    public Enrollment mapToEntity(EnrollmentRequestDto dto, UserRepository userRepo, CourseRepository courseRepo) {
+    // Java
+    @Transactional
+    public Enrollment mapToEntity(
+            EnrollmentRequestDto dto,
+            UserRepository userRepo,
+            CourseRepository courseRepo) {
 
         Enrollment enrollment = new Enrollment();
-
-        // enrollment.setEnrollmentDate(dto.getEnrollmentDate());
         enrollment.setEnrollmentDate(LocalDate.now());
         enrollment.setStatus(dto.getStatus());
 
-
-        String status = dto.getStatus().name();
-
-        switch (status)
-        {
-            case "MONTHLY":
-                enrollment.setExpiresAt(LocalDate.now().plusDays(30));
-                break;
-
-            case "HALFYEARLY":
-                enrollment.setExpiresAt(LocalDate.now().plusDays(180));
-                break;
-
-            case "YEARLY":
-                enrollment.setExpiresAt(LocalDate.now().plusDays(360));
-                break;
-
-            default:
-                enrollment.setExpiresAt(LocalDate.now().plusDays(7));
-
+        switch (dto.getStatus()) {
+            case MONTHLY -> enrollment.setExpiresAt(LocalDate.now().plusDays(30));
+            case HALFYEARLY -> enrollment.setExpiresAt(LocalDate.now().plusDays(180));
+            case YEARLY -> enrollment.setExpiresAt(LocalDate.now().plusDays(360));
+            default -> enrollment.setExpiresAt(LocalDate.now().plusDays(7));
         }
 
-
-
-
-
-
-        User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not Found with this ID"));
-        Course course = courseRepo.findById(dto.getCourseId()).orElseThrow(()-> new RuntimeException("Course not Found with this ID"));
+        User user = userRepo.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not Found with this ID"));
+        Course course = courseRepo.findById(dto.getCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not Found with this ID"));
 
         Payment payment = new Payment();
         payment.setAmount(dto.getPaymentAmount());
-        // payment.setPaymentDate(dto.getPaymentDate());
         payment.setPaymentDate(LocalDate.now());
         payment.setPaymentMethod(dto.getPaymentMethod());
 
-        enrollment.setUser(user);
-        enrollment.setCourse(course);
+        payment.setEnrollment(enrollment);
         enrollment.setPayment(payment);
 
-        enrollmentRepository.save(enrollment);
+        enrollment.setUser(user);
+        enrollment.setCourse(course);
 
+        // Save enrollment (will cascade to payment if configured)
+        enrollmentRepository.save(enrollment);
 
         return enrollment;
     }
 
+
+
+    // only admin can see all enrollments
     @Override
     public List<Enrollment> getAllEnrollment() {
          List<Enrollment> enrollments = enrollmentRepository.findAll();
          return enrollments;
     }
+
+    @Override
+    public Enrollment getEnrollmentById(Long id) {
+
+        Enrollment enrollment = enrollmentRepository.findById(id).orElseThrow(()-> new RuntimeException("Enrollment not found with this ID"+id));
+        return enrollment;
+    }
+
 
     @Override
     public List<Course> getAccess(Long user_id) {
@@ -121,5 +123,19 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
 
     }
+
+
+
+
+    @Override
+    @Transactional
+    public void cancelSubscription(Long enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new RuntimeException("Enrollment not found with this ID: " + enrollmentId));
+
+        enrollmentRepository.delete(enrollment);
+    }
+
+
 
 }

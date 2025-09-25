@@ -14,7 +14,13 @@ public interface EnrollmentService {
 
     public List<Enrollment> getAllEnrollment();
 
+    public Enrollment getEnrollmentById(Long id);
+
     public List<Course> getAccess(Long user_id);
+
+
+    // cancel subscription
+    public void cancelSubscription(Long enrollmentId);
 
 
 

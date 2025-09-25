@@ -23,9 +23,15 @@ public class Payment {
     private LocalDate paymentDate;
     private String paymentMethod;
 
-    @OneToOne(mappedBy = "payment")
+
+
+    @OneToOne
+    @JoinColumn(name = "enrollment_id")
     @JsonIgnore
     private Enrollment enrollment;
+
+
+
 
 
 }

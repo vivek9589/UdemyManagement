@@ -17,10 +17,8 @@ public class Plans {
     @Column(name = "PlanId")
     private Long planId;
     private String name;
-    private float price;
+    private String description;
+    private Double price;
     private int duration;
-
-
-
 
 }

@@ -51,7 +51,7 @@ public class UserController {
     // user registration by self (it does not require any permission)
 
     @PostMapping("/dto/register")
-    public UserResponseDto registerUser(@RequestBody UserRequestDto user)
+    public UserResponseDto registerUser(@RequestParam UserRequestDto user)
     {
 
         return userService.registerUser(user);

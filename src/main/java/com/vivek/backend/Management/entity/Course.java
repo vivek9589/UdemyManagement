@@ -41,7 +41,7 @@ public class Course {
     @JsonIgnore
     private Faculty faculty;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private List<Enrollment> enrollments;
 
