@@ -14,8 +14,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
-@Getter
-@Setter
 public class UserPrincipal implements UserDetails {
 
 

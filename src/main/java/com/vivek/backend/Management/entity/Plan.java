@@ -3,6 +3,7 @@ package com.vivek.backend.Management.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Plans {
+@Builder
+public class Plan {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PlanId")

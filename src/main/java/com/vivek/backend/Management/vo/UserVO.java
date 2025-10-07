@@ -6,17 +6,22 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
+
+//  UserVO  ---> Use for computed or presentation-specific views.
+// Why this matters: You can customize roleLabel (e.g., "Admin", "Student") for frontend display
+@Data
 @AllArgsConstructor
 public class UserVO {
-    private final Long userId;
-    private final String firstName;
-    private final String lastName;
-    private final String phone;
-    private final String email;
-    private final int age;
-    private final String address;
-    private final String role;
+
+    private String firstName;
+    private String email;
+    private String roleLabel;
+
+
+
 
 
 }
+
+
+

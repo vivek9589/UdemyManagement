@@ -47,7 +47,7 @@ Jwts is a utility class from the Java JWT library (specifically io.jsonwebtoken.
                 .add(claims)
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 30) )
+                .expiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000)) // 30 minutes
                 .and()
                 .signWith(getKey())
                 .compact();

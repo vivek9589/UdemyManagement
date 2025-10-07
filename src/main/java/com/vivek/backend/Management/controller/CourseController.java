@@ -9,6 +9,7 @@ import com.vivek.backend.Management.dto.CourseRequestDto;
 import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.service.CourseService;
+import com.vivek.backend.Management.vo.CourseVO;
 import net.minidev.json.annotate.JsonIgnore;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public class CourseController {
 
 
 
+        // create course with upload its content
 
     @PreAuthorize("hasAuthority('UDEMY_WRITE')")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
@@ -48,37 +50,39 @@ public class CourseController {
 
 
 
+    // get All course
 
     @PreAuthorize("hasAuthority('UDEMY_READ')")
-    @GetMapping
-    public List<Course> getAllCourse()
+    @GetMapping("/all")
+    public List<CourseResponseDto> getAllCourse()
     {
         return courseService.getAllCourse();
     }
 
 
-
+    // get course by Id
 
     @PreAuthorize("hasAuthority('UDEMY_READ')")
     @GetMapping("/content/{id}")
-    public CourseResponseDto getCourseById(@PathVariable Long id)
+    public CourseVO getCourseById(@PathVariable Long id)
     {
         return courseService.getCourseById(id);
     }
 
 
 
-
+    // delete course by id
 
     @PreAuthorize("hasAuthority('UDEMY_DELETE')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public String deleteCourseById(@PathVariable Long id)
     {
         return courseService.deleteCourseById(id);
     }
 
 
-
+    // update course by id
+    // work on it later
 
 
 

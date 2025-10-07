@@ -28,7 +28,8 @@ public class Enrollment {
     @Enumerated(EnumType.STRING)
     private EnrollmentStatus status;  // status (TRIAL,   MONTHLY ,HALFYEARLY,  YEARLY)
 
-    @OneToOne
+
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
     @JsonIgnore
     private User user;

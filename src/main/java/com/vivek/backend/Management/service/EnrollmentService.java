@@ -1,22 +1,20 @@
 package com.vivek.backend.Management.service;
 
+import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.dto.EnrollmentRequestDto;
-import com.vivek.backend.Management.entity.Course;
-import com.vivek.backend.Management.entity.Enrollment;
-import com.vivek.backend.Management.repository.CourseRepository;
-import com.vivek.backend.Management.repository.UserRepository;
+import com.vivek.backend.Management.dto.EnrollmentResponseDto;
 
 import java.util.List;
 
 public interface EnrollmentService {
 
-    public Enrollment mapToEntity(EnrollmentRequestDto dto, UserRepository userRepo, CourseRepository courseRepo);
+    public void createEnrollment(EnrollmentRequestDto dto);
 
-    public List<Enrollment> getAllEnrollment();
+    public List<EnrollmentResponseDto> getAllEnrollment();
 
-    public Enrollment getEnrollmentById(Long id);
+    public EnrollmentResponseDto getEnrollmentById(Long id);
 
-    public List<Course> getAccess(Long user_id);
+    public List<CourseResponseDto> getAccess(Long user_id);
 
 
     // cancel subscription

@@ -1,17 +1,15 @@
 package com.vivek.backend.Management.controller;
 
+import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.dto.EnrollmentRequestDto;
-import com.vivek.backend.Management.entity.Course;
+import com.vivek.backend.Management.dto.EnrollmentResponseDto;
 import com.vivek.backend.Management.entity.Enrollment;
 import com.vivek.backend.Management.repository.CourseRepository;
-import com.vivek.backend.Management.repository.EnrollmentRepository;
 import com.vivek.backend.Management.repository.UserRepository;
-import com.vivek.backend.Management.service.CourseService;
 import com.vivek.backend.Management.service.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,11 +39,7 @@ public class EnrollmentController {
         this.enrollmentService = enrollmentService;
     }
 
-    @Autowired
-    private UserRepository userRepo;
 
-    @Autowired
-    private CourseRepository courseRepo;
 
     // POST /enrollments → enroll user in course
 
@@ -53,7 +47,7 @@ public class EnrollmentController {
 
     @PostMapping("/create")
     public ResponseEntity<String> createEnrollment(@RequestBody EnrollmentRequestDto dto) {
-         enrollmentService.mapToEntity(dto, userRepo, courseRepo);
+         enrollmentService.createEnrollment(dto);
 
         return ResponseEntity.ok("Enrollment created successfully");
     }
@@ -65,12 +59,22 @@ public class EnrollmentController {
 
 
     @GetMapping("/all")
-    public ResponseEntity<List<Enrollment>> getAllEnrollments()
+    public ResponseEntity<List<EnrollmentResponseDto>> getAllEnrollments()
     {
-       List<Enrollment> enrollments=  enrollmentService.getAllEnrollment();
+       List<EnrollmentResponseDto> enrollments=  enrollmentService.getAllEnrollment();
 
        return new ResponseEntity<>(enrollments,HttpStatus.OK);
 
+    }
+
+    // get current plan/status
+
+    @GetMapping("/details/{id}")
+    public ResponseEntity<EnrollmentResponseDto> getEnrollmentById(@PathVariable Long id)
+    {
+        EnrollmentResponseDto enrollment = enrollmentService.getEnrollmentById(id);
+
+        return new ResponseEntity<>(enrollment,HttpStatus.OK);
     }
 
     // only enrolled user get access to course
@@ -78,23 +82,15 @@ public class EnrollmentController {
     //    GET /enrollments/access/{courseId} → check if current user has access
 
     @GetMapping("/access/{user_id}")
-    public ResponseEntity<List<Course>> getAccess(@PathVariable Long user_id)
+    public ResponseEntity<List<CourseResponseDto>> getAccess(@PathVariable Long user_id)
     {
-        List<Course> courses =  enrollmentService.getAccess(user_id);
+        List<CourseResponseDto> courses =  enrollmentService.getAccess(user_id);
 
         return new ResponseEntity<>(courses,HttpStatus.OK);
     }
 
 
-    // get current plan/status
 
-    @GetMapping("/details/{id}")
-    public ResponseEntity<Enrollment> getEnrollmentById(@PathVariable Long id)
-    {
-        Enrollment enrollment = enrollmentService.getEnrollmentById(id);
-
-        return new ResponseEntity<>(enrollment,HttpStatus.OK);
-    }
 
 
     // cancel subscription

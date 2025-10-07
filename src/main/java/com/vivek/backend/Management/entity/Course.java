@@ -7,9 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.security.PrivateKey;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,6 +31,7 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
+    @JsonIgnore
     private Category category;
 
     @ManyToOne
@@ -41,7 +39,7 @@ public class Course {
     @JsonIgnore
     private Faculty faculty;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "course")
     @JsonIgnore
     private List<Enrollment> enrollments;
 

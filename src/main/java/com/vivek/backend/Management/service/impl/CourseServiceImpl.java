@@ -14,6 +14,7 @@ import com.vivek.backend.Management.repository.FacultyRepository;
 import com.vivek.backend.Management.repository.UserRepository;
 import com.vivek.backend.Management.service.CloudinaryService;
 import com.vivek.backend.Management.service.CourseService;
+import com.vivek.backend.Management.vo.CourseVO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -130,16 +131,20 @@ public class CourseServiceImpl implements CourseService {
 
 
     @Override
-    public List<Course> getAllCourse() {
+    public List<CourseResponseDto> getAllCourse() {
+
 
         List<Course> courses = courseRepository.findAll();
-        return courses;
+
+        return courses.stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 
     // work on get course content using cloudinary
 
     @Override
-    public CourseResponseDto getCourseById(Long id) {
+    public CourseVO getCourseById(Long id) {
 
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with ID: " + id));
@@ -149,7 +154,16 @@ public class CourseServiceImpl implements CourseService {
         //System.out.println("this is the url "+ url);
 
 
-        return mapToResponseDto(course);
+
+
+        // return mapToResponseDto(course);
+        return CourseVO.builder()
+                .courseId(course.getCourseId())
+                .courseTitle(course.getCourseName())
+                .instructorName(course.getFaculty().getFacultyName())
+                .category(course.getCategory() != null ? course.getCategory().getCategoryName() : null)
+                .duration(course.getDuration())
+                .build();
     }
 
 
@@ -160,7 +174,8 @@ public class CourseServiceImpl implements CourseService {
         {
 
             // get the full course
-            CourseResponseDto course = getCourseById(id);
+
+            Course course = courseRepository.findById(id).get();
 
             cloudinaryService.deleteFile(course.getPublicId());
             courseRepository.deleteById(id);

@@ -1,12 +1,15 @@
 package com.vivek.backend.Management.service.impl;
 
 
+import com.vivek.backend.Management.dao.UserDao;
 import com.vivek.backend.Management.dto.UserRequestDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
 import com.vivek.backend.Management.repository.UserRepository;
 import com.vivek.backend.Management.service.JWTService;
 import com.vivek.backend.Management.service.UserService;
+import com.vivek.backend.Management.vo.RecentUserVO;
+import com.vivek.backend.Management.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +21,19 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
 
+
     private final UserRepository userRepository;
+
+    @Autowired
+    UserServiceImpl(UserRepository userRepository)
+    {
+        this.userRepository = userRepository;
+    }
+
+    // used for custom queries
+    @Autowired
+    private UserDao userDao;
+
 
     @Autowired
     JWTService jwtService;
@@ -26,17 +41,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     AuthenticationManager authManager;
 
-    UserServiceImpl(UserRepository userRepository)
-    {
-        this.userRepository = userRepository;
-    }
-
-
-
 
 
     public User createUser(User user)
     {
+
         return userRepository.save(user);
     }
 
@@ -48,8 +57,7 @@ public class UserServiceImpl implements UserService {
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
                 .email(dto.getEmail())
-                .age(dto.getAge())
-                //.role(Role.valueOf(dto.getRole().toUpperCase()))
+                .password(dto.getPassword())
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -58,8 +66,7 @@ public class UserServiceImpl implements UserService {
                 .id(savedUser.getUserId())
                 .fullName(savedUser.getFirstName() + " " + savedUser.getLastName())
                 .email(savedUser.getEmail())
-                .age(savedUser.getAge())
-                //.role(savedUser.getRole().name())
+                .role(savedUser.getRole())
                 .build();
     }
 
@@ -75,7 +82,6 @@ public class UserServiceImpl implements UserService {
                 .id(user.getUserId())
                 .fullName(user.getFirstName() + " " + user.getLastName())
                 .email(user.getEmail())
-                .age(user.getAge())
                 .build();
 
         //return userRepository.findById(id).orElse(null);
@@ -91,42 +97,43 @@ public class UserServiceImpl implements UserService {
                         .id(user.getUserId())
                         .fullName(user.getFirstName() + " " + user.getLastName())
                         .email(user.getEmail())
-                        .age(user.getAge())
+                        .role(user.getRole())
                         .build())
                 .toList();
     }
 
+    public List<UserVO> getUserDashboardView() {
+        return userDao.getAllUsers();
+    }
 
 
 
 
-    public Long deleteUserById(Long id)
+    public String deleteUserById(Long id)
     {
         userRepository.deleteById(id);
-        return id;
+        return "Successfully deleted user with id: " + id;
 
     }
 
-    /*
-    public AuthResponseDto verify(LoginRequestDto loginDto) {
-        return null;
-    }
-
-     */
 
 
-    public String verify(User user)
+
+    public String verify(String email, String password)
     {
         Authentication authentication =
-                authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(),user.getPassword()));
+                authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 
         if(authentication.isAuthenticated())
-            return jwtService.generateToken(user.getEmail());
+            return jwtService.generateToken(email);
 
         return "fail";
     }
 
-
+    @Override
+    public List<RecentUserVO> getRecentUsers() {
+        return userDao.getUsersRegisteredInLast7Days();
+    }
 
 
 }

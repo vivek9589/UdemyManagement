@@ -3,6 +3,8 @@ package com.vivek.backend.Management.service;
 import com.vivek.backend.Management.dto.UserRequestDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
+import com.vivek.backend.Management.vo.RecentUserVO;
+import com.vivek.backend.Management.vo.UserVO;
 
 
 import java.util.List;
@@ -15,29 +17,27 @@ public interface UserService {
 
     // crud operation for User
 
-
-
-
     public User createUser(User user);
 
     //register user
     public UserResponseDto registerUser(UserRequestDto user);
 
 
-
     // public List<User> getAllUser();
 
     public List<UserResponseDto> getAllUser();
 
+    public List<UserVO> getUserDashboardView();
+
     public UserResponseDto getUserById(Long id);
 
-    public Long deleteUserById(Long id);
+    public String deleteUserById(Long id);
 
 
-    String verify(User user);
+    String verify(String email,String password);
 
 
-
+    public List<RecentUserVO> getRecentUsers();
 
 
 
