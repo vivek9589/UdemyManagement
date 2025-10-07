@@ -1,7 +1,9 @@
 package com.vivek.backend.Management.service.impl;
 
 
+import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.dto.EnrollmentRequestDto;
+import com.vivek.backend.Management.dto.EnrollmentResponseDto;
 import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.entity.Enrollment;
 import com.vivek.backend.Management.entity.Payment;
@@ -31,6 +33,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final PaymentRepository paymentRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
     CourseService courseService;
 
     public EnrollmentServiceImpl(EnrollmentRepository enrollmentRepository, PaymentRepository paymentRepository) {
@@ -39,11 +47,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     // Java
-    @Transactional
-    public Enrollment mapToEntity(
-            EnrollmentRequestDto dto,
-            UserRepository userRepo,
-            CourseRepository courseRepo) {
+    public void createEnrollment(
+            EnrollmentRequestDto dto) {
 
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollmentDate(LocalDate.now());
@@ -56,9 +61,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             default -> enrollment.setExpiresAt(LocalDate.now().plusDays(7));
         }
 
-        User user = userRepo.findById(dto.getUserId())
+        User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not Found with this ID"));
-        Course course = courseRepo.findById(dto.getCourseId())
+        Course course = courseRepository.findById(dto.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not Found with this ID"));
 
         Payment payment = new Payment();
@@ -75,30 +80,44 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         // Save enrollment (will cascade to payment if configured)
         enrollmentRepository.save(enrollment);
 
-        return enrollment;
     }
 
 
 
     // only admin can see all enrollments
     @Override
-    public List<Enrollment> getAllEnrollment() {
+    public List<EnrollmentResponseDto> getAllEnrollment() {
          List<Enrollment> enrollments = enrollmentRepository.findAll();
-         return enrollments;
+
+            return enrollments.stream().map(enrollment -> EnrollmentResponseDto.builder()
+                    .enrollmentId(enrollment.getEnrollmentId())
+                    .userName(enrollment.getUser().getFirstName())
+                    .email(enrollment.getUser().getEmail())
+                    .CourseName(enrollment.getCourse().getCourseName())
+                    .enrollmentDate(enrollment.getEnrollmentDate())
+                    .expiresAt(enrollment.getExpiresAt())
+                    .status(enrollment.getStatus().name())
+                    .build()).toList();
     }
 
     @Override
-    public Enrollment getEnrollmentById(Long id) {
+    public EnrollmentResponseDto getEnrollmentById(Long id) {
 
         Enrollment enrollment = enrollmentRepository.findById(id).orElseThrow(()-> new RuntimeException("Enrollment not found with this ID"+id));
-        return enrollment;
+        return EnrollmentResponseDto.builder()
+                .enrollmentId(enrollment.getEnrollmentId())
+                .userName(enrollment.getUser().getFirstName())
+                .email(enrollment.getUser().getEmail())
+                .CourseName(enrollment.getCourse().getCourseName())
+                .enrollmentDate(enrollment.getEnrollmentDate())
+                .expiresAt(enrollment.getExpiresAt())
+                .status(enrollment.getStatus().name())
+                .build();
     }
 
 
     @Override
-    public List<Course> getAccess(Long user_id) {
-
-
+    public List<CourseResponseDto> getAccess(Long user_id) {
 
         if(!enrollmentRepository.existsByUser_UserId(user_id))
         {
@@ -116,19 +135,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Trial period has expired. Please purchase a plan.");
             // System.out.println("Trial period has expired. Please purchase a plan.");
         }
-        List<Course> courses = courseService.getAllCourse();
+        List<CourseResponseDto> courses = courseService.getAllCourse();
         return courses;
-
-
 
 
     }
 
 
-
-
     @Override
-    @Transactional
     public void cancelSubscription(Long enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new RuntimeException("Enrollment not found with this ID: " + enrollmentId));

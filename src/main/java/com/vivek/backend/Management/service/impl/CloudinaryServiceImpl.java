@@ -4,7 +4,6 @@ package com.vivek.backend.Management.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.vivek.backend.Management.service.CloudinaryService;
-import com.vivek.backend.Management.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

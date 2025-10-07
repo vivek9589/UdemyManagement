@@ -18,7 +18,5 @@ public class CourseResponseDto {
     private String publicId;
     private String url;
 
-    private String facultyName;  // optional: derived from Faculty entity
-    private String instructorEmail;   // optional: derived from Faculty
     private String createdBy;    // optional: derived from User entity
 }

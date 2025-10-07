@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+          font-family: Georgia, serif;
+          text-align: center;
+          padding: 50px;
+          border: 10px solid #2c3e50;
+        }
+        h1 { font-size: 36px; margin-bottom: 10px; }
+        .subtitle { font-size: 18px; margin-bottom: 30px; }
+        .name { font-size: 28px; font-weight: bold; margin: 20px 0; }
+        .course { font-size: 20px; margin-bottom: 10px; }
+        .date { font-size: 14px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+<h1>Certificate of Achievement</h1>
+<div class="subtitle">This certificate is proudly presented to</div>
+<div class="name" th:text="${name}">Recipient Name</div>
+<div class="course" th:text="'For successfully completing the ' + ${course}">Course Name</div>
+<div class="date" th:text="${#dates.format(#dates.createNow(), 'MMMM d, yyyy')}">October 7, 2025</div>
+</body>
+</html>
