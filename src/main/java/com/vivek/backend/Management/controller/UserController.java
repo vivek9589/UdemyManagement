@@ -2,7 +2,7 @@ package com.vivek.backend.Management.controller;
 
 
 
-import com.vivek.backend.Management.dto.UserRequestDto;
+import com.vivek.backend.Management.dto.SignupDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
 import com.vivek.backend.Management.service.UserService;
@@ -87,9 +87,9 @@ public class UserController {
     // user registration by self (it does not require any permission)
 
     @PostMapping("/dto/register")
-    public UserResponseDto registerUser(@RequestBody UserRequestDto userRequestDto)
+    public UserResponseDto registerUser(@RequestBody SignupDto signupDto)
     {
-        return userService.registerUser(userRequestDto);
+        return userService.registerUser(signupDto);
     }
 
 

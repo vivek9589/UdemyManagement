@@ -1,6 +1,6 @@
 package com.vivek.backend.Management.service;
 
-import com.vivek.backend.Management.dto.UserRequestDto;
+import com.vivek.backend.Management.dto.SignupDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
 import com.vivek.backend.Management.vo.RecentUserVO;
@@ -19,8 +19,8 @@ public interface UserService {
 
     public User createUser(User user);
 
-    //register user
-    public UserResponseDto registerUser(UserRequestDto user);
+    //register signupDto
+    public UserResponseDto registerUser(SignupDto signupDto);
 
 
     // public List<User> getAllUser();

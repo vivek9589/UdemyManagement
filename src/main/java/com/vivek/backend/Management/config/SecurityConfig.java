@@ -47,7 +47,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .authorizeHttpRequests(auth -> auth
 
                     // Public endpoints for register
-                    .requestMatchers(HttpMethod.POST, "/user/register","/user/dto/register", "/user/login").permitAll() // allow POST to /users and /users/login
+                    .requestMatchers(HttpMethod.POST, "/user/register","/user/dto/register", "/auth/logIn","/auth/signUp").permitAll() // allow POST to /users and /users/login
 
 
                     /*

@@ -3,6 +3,7 @@ package com.vivek.backend.Management.certificate;
 
 import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.service.CourseService;
+import com.vivek.backend.Management.service.JWTService;
 import com.vivek.backend.Management.vo.CourseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,22 +25,25 @@ public class CertificateServiceImpl implements CertificateService {
     @Autowired
     private CourseService courseService;
 
+    @Autowired
+    private JWTService jwtService;
 
 
-    public String generateHtml(String name, Long id) {
+
+
+    public String generateHtml(String token, Long id) {
 
         CourseVO courseDetails = courseService.getCourseById(id);
 
 
-
         Context context = new Context();
-        context.setVariable("name", name);
+        context.setVariable("name", jwtService.extractFirstName(token) + " " + jwtService.extractLastName(token));
         context.setVariable("course", courseDetails.getCourseTitle());
 
 
 
         Certificate certificate = new Certificate();
-        certificate.setUserName(name);
+        certificate.setUserName(jwtService.extractUserName(token));
         certificate.setCourseName(courseDetails.getCourseTitle());
         certificate.setIssueDate(LocalDate.now());
 

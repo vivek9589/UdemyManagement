@@ -2,7 +2,7 @@ package com.vivek.backend.Management.service.impl;
 
 
 import com.vivek.backend.Management.dao.UserDao;
-import com.vivek.backend.Management.dto.UserRequestDto;
+import com.vivek.backend.Management.dto.SignupDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
 import com.vivek.backend.Management.repository.UserRepository;
@@ -52,12 +52,12 @@ public class UserServiceImpl implements UserService {
 
 
 
-    public UserResponseDto registerUser(UserRequestDto dto) {
+    public UserResponseDto registerUser(SignupDto signupDto) {
         User user = User.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .email(dto.getEmail())
-                .password(dto.getPassword())
+                .firstName(signupDto.getFirstName())
+                .lastName(signupDto.getLastName())
+                .email(signupDto.getEmail())
+                .password(signupDto.getPassword())
                 .build();
 
         User savedUser = userRepository.save(user);
