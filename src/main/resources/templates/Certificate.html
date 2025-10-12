@@ -3,24 +3,225 @@
 <head>
     <meta charset="UTF-8" />
     <style>
+        /* Base Layout */
         body {
-          font-family: Georgia, serif;
-          text-align: center;
-          padding: 50px;
-          border: 10px solid #2c3e50;
+            font-family: 'Georgia', serif;
+            text-align: center;
+            margin: 0;
+            padding: 40px;
+            background: url('/static/bi-logo.png') no-repeat center center;
+            background-size: cover;
         }
-        h1 { font-size: 36px; margin-bottom: 10px; }
-        .subtitle { font-size: 18px; margin-bottom: 30px; }
-        .name { font-size: 28px; font-weight: bold; margin: 20px 0; }
-        .course { font-size: 20px; margin-bottom: 10px; }
-        .date { font-size: 14px; margin-top: 30px; }
+
+        .certificate-container {
+            position: relative;
+            max-width: 900px;
+            margin: auto;
+            padding: 50px 60px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,245,240,0.92));
+            border: 10px double #bfa14a;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Decorative Inner Border */
+        .certificate-container::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 3px solid #d4af37;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        /* Watermark Logo */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            opacity: 0.08;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header Elements */
+        .logo {
+            width: 130px;
+            margin-bottom: 25px;
+            z-index: 1;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 46px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            z-index: 1;
+            position: relative;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #555;
+            font-style: italic;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Recipient Section */
+        .name {
+            font-size: 38px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin: 30px 0 15px;
+            text-decoration: underline;
+            text-underline-offset: 6px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .course {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+            z-index: 1;
+            position: relative;
+        }
+
+        .organization {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #555;
+            z-index: 1;
+            position: relative;
+        }
+
+        .cert-number {
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .date {
+            font-size: 16px;
+            margin-top: 25px;
+            color: #333;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Signatures */
+        .signature-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 70px;
+            padding: 0 20px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .signature {
+            text-align: center;
+        }
+
+        .signature img {
+            width: 130px;
+            height: auto;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #bbb;
+            padding-bottom: 5px;
+        }
+
+        .signature-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #222;
+        }
+
+        .signature-title {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Print Optimization */
+        @media print {
+            body {
+                background: none;
+            }
+            .certificate-container {
+                box-shadow: none;
+            }
+            .watermark {
+                opacity: 0.12;
+            }
+        }
+
+        /* Fade-In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .certificate-container {
+            animation: fadeIn 1.2s ease-in-out;
+        }
     </style>
 </head>
 <body>
-<h1>Certificate of Achievement</h1>
-<div class="subtitle">This certificate is proudly presented to</div>
-<div class="name" th:text="${name}">Recipient Name</div>
-<div class="course" th:text="'For successfully completing the ' + ${course}">Course Name</div>
-<div class="date" th:text="${#dates.format(#dates.createNow(), 'MMMM d, yyyy')}">October 7, 2025</div>
+<div class="certificate-container">
+
+    <!-- Watermark -->
+    <img src="classpath:/static/images/watermark-logo.png" alt="Watermark" class="watermark" />
+
+    <!-- Organization Logo -->
+    <img th:src="@{classpath:/static/bi-logo.png}" alt="Organization Logo" class="logo" />
+
+    <h1>Certificate of Achievement</h1>
+    <div class="subtitle">This certificate is proudly presented to</div>
+
+    <div class="name" th:text="${name}">Recipient Name</div>
+    <div class="course" th:text="'For successfully completing the ' + ${course}">Course Name</div>
+
+    <div class="organization">Brain Inventory</div>
+
+    <!-- Random certificate number using inline Thymeleaf expression -->
+    <div class="cert-number" th:text="'Certificate No: ' + ${T(java.util.UUID).randomUUID().toString().substring(0,8)}">
+        Certificate No: 12345678
+    </div>
+
+    <div class="date" th:text="${#dates.format(#dates.createNow(), 'MMMM d, yyyy')}">October 10, 2025</div>
+
+    <div class="signature-section">
+        <table style="width: 100%; margin-top: 50px;">
+            <tr>
+                <td style="text-align: left; width: 50%;">
+                    <img src="classpath:/static/vivekkk-sign.png" alt="Signature Left" style="width: 120px;" />
+                    <div class="signature-name">Vivek Rathore</div>
+                    <div class="signature-title">Course Director</div>
+                </td>
+                <td style="text-align: right; width: 50%;">
+                    <img src="classpath:/static/aradhyaaa-sign.png" alt="Signature Right" style="width: 120px;" />
+                    <div class="signature-name">Sufiyan Rao</div>
+                    <div class="signature-title">CEO, Brain Inventory</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
 </body>
 </html>
+

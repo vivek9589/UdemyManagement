@@ -1,6 +1,5 @@
 package com.vivek.backend.Management.dto;
 
-import com.vivek.backend.Management.enums.Role;
 import lombok.*;
 
 
@@ -22,12 +21,13 @@ Often used with @RequestBody, @ResponseBody
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserRequestDto {
+public class SignupDto {
 
 
     // combine krke --> only name kr do
     private String firstName;
     private String lastName;
+    //you can add validation here
     private String email;
     private String password;
 
