@@ -31,7 +31,7 @@ public class CourseController {
 
         // create course with upload its content
 
-    @PreAuthorize("hasAuthority('UDEMY_WRITE')")
+    @PreAuthorize("hasAuthority('COURSE_CREATE')")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public CourseResponseDto createCourse(
             @RequestPart("course") String course,
@@ -50,7 +50,7 @@ public class CourseController {
 
     // get All course
 
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('COURSE_READ')")
     @GetMapping("/all")
     public List<CourseResponseDto> getAllCourse()
     {
@@ -60,7 +60,7 @@ public class CourseController {
 
     // get course by Id
 
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('COURSE_READ')")
     @GetMapping("/content/{id}")
     public CourseVO getCourseById(@PathVariable Long id)
     {
@@ -71,7 +71,7 @@ public class CourseController {
 
     // delete course by id
 
-    @PreAuthorize("hasAuthority('UDEMY_DELETE')")
+    @PreAuthorize("hasAuthority('COURSE_DELETE')")
     @DeleteMapping("/delete/{id}")
     public String deleteCourseById(@PathVariable Long id)
     {

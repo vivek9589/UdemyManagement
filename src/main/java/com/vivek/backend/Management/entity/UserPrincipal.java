@@ -1,10 +1,7 @@
 package com.vivek.backend.Management.entity;
 
-import com.vivek.backend.Management.enums.Permissions;
 import com.vivek.backend.Management.enums.Role;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -60,20 +57,19 @@ public class UserPrincipal implements UserDetails {
     }
 
      */
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 
-        // Add role
+        // Add role-based authority (Spring Security expects "ROLE_" prefix)
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
-        // Add permissions
-        Set<SimpleGrantedAuthority> permissionsAuthorities = user.getRole().getPermissions().stream()
+        // Add permission-based authorities
+        Set<SimpleGrantedAuthority> permissionAuthorities = user.getRole().getPermissions().stream()
                 .map(permission -> new SimpleGrantedAuthority(permission.name()))
                 .collect(Collectors.toSet());
 
-        authorities.addAll(permissionsAuthorities);
+        authorities.addAll(permissionAuthorities);
         return authorities;
     }
 

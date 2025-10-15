@@ -20,6 +20,7 @@ import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -53,20 +54,20 @@ public class JWTServiceImpl implements JWTService {
 Jwts is a utility class from the Java JWT library (specifically io.jsonwebtoken.Jwts) used to create, parse, and validate JWT tokens in Java applications.
  */
 
-
-   public String generateToken(String email) {
-
-        Map<String,Object> claims = new HashMap<>();
+    public String generateToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
 
         User user = userRepository.findByEmail(email);
 
+        // Add custom claims
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("permissions", user.getRole().getPermissions().stream()
+                .map(Enum::name)
+                .collect(Collectors.toList()));
+        claims.put("role", user.getRole().name());
 
-       claims.put("firstName", user.getFirstName()); // Add custom claim
-       claims.put("lastName", user.getLastName());   // Add custom claim
-       //claims.put("role", user.getRole());           // Add custom claim
-
-
-       return Jwts.builder()
+        return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(email)
@@ -77,7 +78,6 @@ Jwts is a utility class from the Java JWT library (specifically io.jsonwebtoken.
                 .compact();
     }
 
-
     public String createAccessToken(String email) {
         Map<String, Object> claims = new HashMap<>();
 
@@ -85,6 +85,9 @@ Jwts is a utility class from the Java JWT library (specifically io.jsonwebtoken.
 
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
+        claims.put("permissions", user.getRole().getPermissions().stream()
+                .map(Enum::name)
+                .collect(Collectors.toList()));
 
         return Jwts.builder()
                 .setClaims(claims) // ✅ Correct way to set claims

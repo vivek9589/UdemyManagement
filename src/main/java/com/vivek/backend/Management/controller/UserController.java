@@ -43,7 +43,7 @@ public class UserController {
 
     // only admin can create user
     @PostMapping("/create")
-    @PreAuthorize("hasAuthority('UDEMY_WRITE')")
+    @PreAuthorize("hasAuthority('USER_CREATE')")
     public User createUser(@RequestBody User user)
     {
 
@@ -64,7 +64,9 @@ public class UserController {
 
     */
 
-    @GetMapping("/all")             // this api uses custom dao
+    // Get all users (custom DAO)
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('USER_READ')")             // this api uses custom dao
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUser());
     }
@@ -73,7 +75,7 @@ public class UserController {
         // get user by id
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('USER_READ')")
     public UserResponseDto getUserById(@PathVariable Long id)
     {
         return userService.getUserById(id);
@@ -94,7 +96,7 @@ public class UserController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('UDEMY_DELETE')")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
     public String deleteUserById(@PathVariable Long id)
     {
             userService.deleteUserById(id);
@@ -123,6 +125,7 @@ public class UserController {
 
     // get all the users registered in last 7 days with role USER
     @GetMapping("/recent")
+    @PreAuthorize("hasAuthority('USER_READ')")
     public ResponseEntity<List<RecentUserVO>> getRecentUsers() {
         return ResponseEntity.ok(userService.getRecentUsers());
     }
@@ -132,6 +135,7 @@ public class UserController {
     // get user dashboard view (only name, email, role)
 
     @GetMapping("/dashboard")
+    @PreAuthorize("hasAuthority('USER_READ')")
     public ResponseEntity<List<UserVO>> getUserDashboardView() {
         return ResponseEntity.ok(userService.getUserDashboardView());
     }
