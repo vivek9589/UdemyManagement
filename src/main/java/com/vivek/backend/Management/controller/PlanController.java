@@ -23,31 +23,31 @@ public class PlanController {
         this.plansService = plansService;
     }
 
-    @PreAuthorize("hasAuthority('UDEMY_WRITE')")
+    @PreAuthorize("hasAuthority('PLAN_CREATE')")
     @PostMapping("/create")
     public ResponseEntity<PlanResponseDto> createPlan(@RequestBody PlanRequestDto dto) {
         return ResponseEntity.ok(plansService.createPlan(dto));
     }
 
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/all")
     public ResponseEntity<List<PlanResponseDto>> getAllPlans() {
         return ResponseEntity.ok(plansService.getAllPlans());
     }
 
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/{id}")
     public ResponseEntity<PlanResponseDto> getPlanById(@PathVariable Long id) {
         return ResponseEntity.ok(plansService.getPlanById(id));
     }
 
-    @PreAuthorize("hasAuthority('UDEMY_DELETE')")
+    @PreAuthorize("hasAuthority('PLAN_DELETE')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deletePlanById(@PathVariable Long id) {
         return ResponseEntity.ok(plansService.deletePlanById(id));
     }
 
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/dashboard")
     public ResponseEntity<List<PlanVO>> getPlanDashboardView() {
         return ResponseEntity.ok(plansService.getPlanDashboardView());
@@ -55,7 +55,7 @@ public class PlanController {
 
 
     //  Get plans above a certain price
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/above-price")
     public ResponseEntity<List<PlanVO>> getPlansAbovePrice(@RequestParam Double minPrice) {
         List<PlanVO> plans = plansService.getPlansAbovePrice(minPrice);
@@ -63,7 +63,7 @@ public class PlanController {
     }
 
     // Get plans within a duration range
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/duration-range")
     public ResponseEntity<List<PlanVO>> getPlansByDurationRange(@RequestParam int minDays,
                                                                 @RequestParam int maxDays) {
@@ -72,7 +72,7 @@ public class PlanController {
     }
 
     //  Get total revenue from all plans
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/total-revenue")
     public ResponseEntity<Double> getTotalRevenueFromPlans() {
         Double totalRevenue = plansService.getTotalRevenueFromPlans();
@@ -80,7 +80,7 @@ public class PlanController {
     }
 
     // Get total duration across all plans
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
+    @PreAuthorize("hasAuthority('PLAN_READ')")
     @GetMapping("/total-duration")
     public ResponseEntity<Integer> getTotalDurationAcrossPlans() {
         Integer totalDuration = plansService.getTotalDurationAcrossPlans();

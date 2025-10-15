@@ -5,6 +5,7 @@ import com.vivek.backend.Management.dto.QuestionRequestDto;
 import com.vivek.backend.Management.dto.QuestionResponseDto;
 import com.vivek.backend.Management.entity.Question;
 import com.vivek.backend.Management.service.QuestionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +23,9 @@ public class QuestionController {
 
 
     // add /create question
+
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('QUESTION_CREATE')")
     public QuestionResponseDto createQuestion(@RequestBody QuestionRequestDto dto){
         return questionService.createQuestion(dto);
     }
@@ -31,6 +34,7 @@ public class QuestionController {
     // get all question of quiz
     // http://localhost:8080/question/quiz/1
     @GetMapping("/quiz/{quizId}")
+    @PreAuthorize("hasAuthority('QUESTION_READ')")
     public List<Question> getAllQuestionOfQuiz(@PathVariable Long quizId) {
 
             return questionService.getAllQuestionOfQuiz(quizId);
@@ -39,6 +43,7 @@ public class QuestionController {
 
     // delete question by question id
     @DeleteMapping("/delete/{questionId}")
+    @PreAuthorize("hasAuthority('QUESTION_DELETE')")
     public String deleteQuestion(@PathVariable Long questionId) {
         return questionService.deleteQuestion(questionId);
     }
@@ -47,6 +52,7 @@ public class QuestionController {
 
         // get all questions with options of quiz
     @GetMapping("/options/{quizId}")
+    @PreAuthorize("hasAuthority('QUESTION_READ')")
     public List<QuestionResponseDto> getAllQuestionsWithOptionsOfQuiz(@PathVariable Long quizId) {
         return questionService.getAllQuestionsWithOptionsOfQuiz(quizId);
     }

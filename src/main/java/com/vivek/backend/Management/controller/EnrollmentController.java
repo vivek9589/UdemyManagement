@@ -10,6 +10,7 @@ import com.vivek.backend.Management.service.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class EnrollmentController {
 
 
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('ENROLL_USER')")
     public ResponseEntity<String> createEnrollment(@RequestBody EnrollmentRequestDto dto) {
          enrollmentService.createEnrollment(dto);
 
@@ -56,9 +58,9 @@ public class EnrollmentController {
 
 
     // admin access for all enrollments    // user can see only their enrollment
-
-
+    // Admin access for all enrollments
     @GetMapping("/all")
+    @PreAuthorize("hasAuthority('VIEW_ENROLLMENTS')")
     public ResponseEntity<List<EnrollmentResponseDto>> getAllEnrollments()
     {
        List<EnrollmentResponseDto> enrollments=  enrollmentService.getAllEnrollment();
@@ -69,7 +71,9 @@ public class EnrollmentController {
 
     // get current plan/status
 
-    @GetMapping("/details/{id}")
+    // Admin access for all enrollments
+    @GetMapping("/all/{id}")
+    @PreAuthorize("hasAuthority('VIEW_ENROLLMENTS')")
     public ResponseEntity<EnrollmentResponseDto> getEnrollmentById(@PathVariable Long id)
     {
         EnrollmentResponseDto enrollment = enrollmentService.getEnrollmentById(id);
@@ -82,6 +86,7 @@ public class EnrollmentController {
     //    GET /enrollments/access/{courseId} → check if current user has access
 
     @GetMapping("/access/{user_id}")
+    @PreAuthorize("hasAuthority('VIEW_ENROLLMENTS')")
     public ResponseEntity<List<CourseResponseDto>> getAccess(@PathVariable Long user_id)
     {
         List<CourseResponseDto> courses =  enrollmentService.getAccess(user_id);
@@ -95,6 +100,7 @@ public class EnrollmentController {
 
     // cancel subscription
     @DeleteMapping("/cancel/{enrollmentId}")
+    @PreAuthorize("hasAuthority('CANCEL_ENROLLMENT')")
     public ResponseEntity<String> cancelSubscription(@PathVariable Long enrollmentId)
     {
         enrollmentService.cancelSubscription(enrollmentId);
