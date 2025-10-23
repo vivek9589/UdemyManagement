@@ -5,6 +5,7 @@ package com.vivek.backend.Management.controller;
 import com.vivek.backend.Management.dto.SignupDto;
 import com.vivek.backend.Management.dto.UserResponseDto;
 import com.vivek.backend.Management.entity.User;
+import com.vivek.backend.Management.exception.UserNotFoundException;
 import com.vivek.backend.Management.service.UserService;
 import com.vivek.backend.Management.vo.RecentUserVO;
 import com.vivek.backend.Management.vo.UserVO;
@@ -26,121 +27,64 @@ import java.util.List;
 - Usage: Typically used in GET requests to filter or sort results, or in POST requests to handle form submissions where parameters are sent as key-value pairs.
 
  */
-
-
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-
     private final UserService userService;
 
-    public UserController(UserService userService)
-    {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
-
-    // only admin can create user
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('USER_CREATE')")
-    public User createUser(@RequestBody User user)
-    {
-
-        return userService.createUser(user);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        return ResponseEntity.status(201).body(createdUser); // 201 Created
     }
 
-
-    // get all users
-
-
-       /*
-    @GetMapping             // this api uses jpa
-    @PreAuthorize("hasAuthority('UDEMY_READ')")
-    public List<UserResponseDto> getAllUser()
-    {
-        return userService.getAllUser();
-    }
-
-    */
-
-    // Get all users (custom DAO)
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('USER_READ')")             // this api uses custom dao
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+    @PreAuthorize("hasAuthority('USER_READ')")
+    public ResponseEntity<List<?>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUser());
     }
 
-
-        // get user by id
-
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_READ')")
-    public UserResponseDto getUserById(@PathVariable Long id)
-    {
-        return userService.getUserById(id);
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        UserResponseDto user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
     }
-
-
-
-
-
-
-    // user registration by self (it does not require any permission)
 
     @PostMapping("/dto/register")
-    public UserResponseDto registerUser(@RequestBody SignupDto signupDto)
-    {
-        return userService.registerUser(signupDto);
+    public ResponseEntity<UserResponseDto> registerUser(@RequestBody SignupDto signupDto) {
+        UserResponseDto registeredUser = userService.registerUser(signupDto);
+        return ResponseEntity.status(201).body(registeredUser); // 201 Created
     }
-
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_DELETE')")
-    public String deleteUserById(@PathVariable Long id)
-    {
-            userService.deleteUserById(id);
-             return "User deleted successfully with id: " + id;
+    public ResponseEntity<String> deleteUserById(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.ok("User deleted successfully with id: " + id);
     }
-
-
-
-    //api for for update user
-
-
-
-    //login
 
     @PostMapping("/login")
-    public String login(@RequestParam String email , @RequestParam String password)
-    {
-
-        return userService.verify(email,password );
-
+    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
+        String result = userService.verify(email, password);
+        return ResponseEntity.ok(result);
     }
 
-
-
-    // use -- DAO
-
-    // get all the users registered in last 7 days with role USER
     @GetMapping("/recent")
     @PreAuthorize("hasAuthority('USER_READ')")
     public ResponseEntity<List<RecentUserVO>> getRecentUsers() {
         return ResponseEntity.ok(userService.getRecentUsers());
     }
 
-
-
-    // get user dashboard view (only name, email, role)
-
     @GetMapping("/dashboard")
     @PreAuthorize("hasAuthority('USER_READ')")
     public ResponseEntity<List<UserVO>> getUserDashboardView() {
         return ResponseEntity.ok(userService.getUserDashboardView());
     }
-
-
-
-
 }

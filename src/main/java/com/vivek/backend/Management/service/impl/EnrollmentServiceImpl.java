@@ -8,6 +8,10 @@ import com.vivek.backend.Management.entity.Course;
 import com.vivek.backend.Management.entity.Enrollment;
 import com.vivek.backend.Management.entity.Payment;
 import com.vivek.backend.Management.entity.User;
+import com.vivek.backend.Management.exception.CourseNotFoundException;
+import com.vivek.backend.Management.exception.EnrollmentAccessException;
+import com.vivek.backend.Management.exception.EnrollmentNotFoundException;
+import com.vivek.backend.Management.exception.UserNotFoundException;
 import com.vivek.backend.Management.repository.CourseRepository;
 import com.vivek.backend.Management.repository.EnrollmentRepository;
 import com.vivek.backend.Management.repository.PaymentRepository;
@@ -15,6 +19,8 @@ import com.vivek.backend.Management.repository.UserRepository;
 import com.vivek.backend.Management.service.CourseService;
 import com.vivek.backend.Management.service.EnrollmentService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,33 +28,27 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
-
 @Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
-    @Autowired
-    private final EnrollmentRepository enrollmentRepository;
+    private static final Logger logger = LoggerFactory.getLogger(EnrollmentServiceImpl.class);
 
-    @Autowired
+    private final EnrollmentRepository enrollmentRepository;
     private final PaymentRepository paymentRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private CourseRepository courseRepository;
+    @Autowired private CourseService courseService;
 
     @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    CourseService courseService;
-
     public EnrollmentServiceImpl(EnrollmentRepository enrollmentRepository, PaymentRepository paymentRepository) {
         this.enrollmentRepository = enrollmentRepository;
         this.paymentRepository = paymentRepository;
     }
 
-    // Java
-    public void createEnrollment(
-            EnrollmentRequestDto dto) {
+    @Override
+    public void createEnrollment(EnrollmentRequestDto dto) {
+        logger.info("Creating enrollment for user ID: {} and course ID: {}", dto.getUserId(), dto.getCourseId());
 
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollmentDate(LocalDate.now());
@@ -62,48 +62,58 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not Found with this ID"));
+                .orElseThrow(() -> {
+                    logger.error("User not found with ID: {}", dto.getUserId());
+                    throw new UserNotFoundException("User not found with ID: " + dto.getUserId());
+                });
+
         Course course = courseRepository.findById(dto.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not Found with this ID"));
+                .orElseThrow(() -> {
+                    logger.error("Course not found with ID: {}", dto.getCourseId());
+                    throw new CourseNotFoundException("Course not found with ID: " + dto.getCourseId());
+                });
 
         Payment payment = new Payment();
         payment.setAmount(dto.getPaymentAmount());
         payment.setPaymentDate(LocalDate.now());
         payment.setPaymentMethod(dto.getPaymentMethod());
-
         payment.setEnrollment(enrollment);
-        enrollment.setPayment(payment);
 
+        enrollment.setPayment(payment);
         enrollment.setUser(user);
         enrollment.setCourse(course);
 
-        // Save enrollment (will cascade to payment if configured)
         enrollmentRepository.save(enrollment);
-
+        logger.info("Enrollment created successfully for user ID: {}", dto.getUserId());
     }
 
-
-
-    // only admin can see all enrollments
     @Override
     public List<EnrollmentResponseDto> getAllEnrollment() {
-         List<Enrollment> enrollments = enrollmentRepository.findAll();
+        logger.info("Fetching all enrollments");
+        List<Enrollment> enrollments = enrollmentRepository.findAll();
+        logger.debug("Total enrollments fetched: {}", enrollments.size());
 
-            return enrollments.stream().map(enrollment -> EnrollmentResponseDto.builder()
-                    .enrollmentId(enrollment.getEnrollmentId())
-                    .userName(enrollment.getUser().getFirstName())
-                    .email(enrollment.getUser().getEmail())
-                    .CourseName(enrollment.getCourse().getCourseName())
-                    .enrollmentDate(enrollment.getEnrollmentDate())
-                    .expiresAt(enrollment.getExpiresAt())
-                    .status(enrollment.getStatus().name())
-                    .build()).toList();
+        return enrollments.stream().map(enrollment -> EnrollmentResponseDto.builder()
+                .enrollmentId(enrollment.getEnrollmentId())
+                .userName(enrollment.getUser().getFirstName())
+                .email(enrollment.getUser().getEmail())
+                .CourseName(enrollment.getCourse().getCourseName())
+                .enrollmentDate(enrollment.getEnrollmentDate())
+                .expiresAt(enrollment.getExpiresAt())
+                .status(enrollment.getStatus().name())
+                .build()).toList();
     }
 
     @Override
     public EnrollmentResponseDto getEnrollmentById(Long id) {
+        logger.info("Fetching enrollment with ID: {}", id);
 
-        Enrollment enrollment = enrollmentRepository.findById(id).orElseThrow(()-> new RuntimeException("Enrollment not found with this ID"+id));
+        Enrollment enrollment = enrollmentRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Enrollment not found with ID: {}", id);
+                    throw new EnrollmentNotFoundException("Enrollment not found with ID: " + id);
+                });
+
         return EnrollmentResponseDto.builder()
                 .enrollmentId(enrollment.getEnrollmentId())
                 .userName(enrollment.getUser().getFirstName())
@@ -115,41 +125,39 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .build();
     }
 
-
     @Override
-    public List<CourseResponseDto> getAccess(Long user_id) {
+    public List<CourseResponseDto> getAccess(Long userId) {
+        logger.info("Checking access for user ID: {}", userId);
 
-        if(!enrollmentRepository.existsByUser_UserId(user_id))
-        {
-            throw new RuntimeException("User is not enrolled");
-
+        if (!enrollmentRepository.existsByUser_UserId(userId)) {
+            logger.warn("User not enrolled: {}", userId);
+            throw new EnrollmentAccessException("User is not enrolled");
         }
 
-
-        Enrollment enrollment = enrollmentRepository.findByUser_UserId(user_id);
+        Enrollment enrollment = enrollmentRepository.findByUser_UserId(userId);
         String plan = enrollment.getStatus().name();
 
-        if(plan.equals("TRIAL")  && LocalDate.now().isAfter(enrollment.getExpiresAt()))
-        {
-            // Trial has expired
+        if ("TRIAL".equals(plan) && LocalDate.now().isAfter(enrollment.getExpiresAt())) {
+            logger.warn("Trial expired for user ID: {}", userId);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Trial period has expired. Please purchase a plan.");
-            // System.out.println("Trial period has expired. Please purchase a plan.");
         }
+
         List<CourseResponseDto> courses = courseService.getAllCourse();
+        logger.debug("Access granted to {} courses for user ID: {}", courses.size(), userId);
         return courses;
-
-
     }
-
 
     @Override
     public void cancelSubscription(Long enrollmentId) {
+        logger.info("Cancelling subscription for enrollment ID: {}", enrollmentId);
+
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found with this ID: " + enrollmentId));
+                .orElseThrow(() -> {
+                    logger.error("Enrollment not found with ID: {}", enrollmentId);
+                    throw new EnrollmentNotFoundException("Enrollment not found with ID: " + enrollmentId);
+                });
 
         enrollmentRepository.delete(enrollment);
+        logger.info("Subscription cancelled for enrollment ID: {}", enrollmentId);
     }
-
-
-
 }

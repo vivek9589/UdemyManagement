@@ -28,8 +28,6 @@ public interface QuestionService {
     public String deleteQuestion(Long questionId);
 
 
-
-
     /*
 
     // update question

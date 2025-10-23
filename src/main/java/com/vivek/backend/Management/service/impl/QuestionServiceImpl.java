@@ -6,39 +6,47 @@ import com.vivek.backend.Management.dto.QuestionResponseDto;
 import com.vivek.backend.Management.entity.Option;
 import com.vivek.backend.Management.entity.Question;
 import com.vivek.backend.Management.entity.Quiz;
+import com.vivek.backend.Management.exception.QuestionNotFoundException;
+import com.vivek.backend.Management.exception.QuizNotFoundException;
 import com.vivek.backend.Management.repository.QuestionRepository;
 import com.vivek.backend.Management.repository.QuizRepository;
 import com.vivek.backend.Management.service.QuestionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
 public class QuestionServiceImpl implements QuestionService {
 
+    private static final Logger logger = LoggerFactory.getLogger(QuestionServiceImpl.class);
+
     private final QuestionRepository questionRepository;
-
-    QuestionServiceImpl(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
-    }
-
 
     @Autowired
     private QuizRepository quizRepository;
 
+    @Autowired
+    public QuestionServiceImpl(QuestionRepository questionRepository) {
+        this.questionRepository = questionRepository;
+    }
 
     @Override
     public QuestionResponseDto createQuestion(QuestionRequestDto dto) {
+        logger.info("Creating question for quiz ID: {}", dto.getQuizId());
 
         Quiz quiz = quizRepository.findById(dto.getQuizId())
-                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + dto.getQuizId()));
+                .orElseThrow(() -> {
+                    logger.error("Quiz not found with ID: {}", dto.getQuizId());
+                    throw new QuizNotFoundException("Quiz not found with ID: " + dto.getQuizId());
+                });
 
-        // update no. of questions in quiz
         quiz.setNoOfQuestions(quiz.getNoOfQuestions() + 1);
         quizRepository.save(quiz);
+        logger.debug("Updated quiz question count to {}", quiz.getNoOfQuestions());
 
         Question question = Question.builder()
                 .questionType(dto.getQuestionType())
@@ -48,66 +56,59 @@ public class QuestionServiceImpl implements QuestionService {
                 .quiz(quiz)
                 .build();
 
-        // Map OptionRequestDto to Option entities
         List<Option> options = dto.getOptionsList().stream().map(optDto -> {
             Option option = new Option();
             option.setOptions(optDto.getOptions());
             option.setCorrect(optDto.isCorrect());
-            option.setQuestion(question); // link to parent question
+            option.setQuestion(question);
             return option;
         }).collect(Collectors.toList());
 
         question.setOptionsList(options);
 
         Question savedQuestion = questionRepository.save(question);
+        logger.info("Question created with ID: {}", savedQuestion.getQuestionId());
 
-        // Map Option entities to OptionResponseDto
         List<OptionResponseDto> optionResponses = savedQuestion.getOptionsList().stream().map(opt ->
                 OptionResponseDto.builder()
-                        //.optionId(opt.getOptionId())
                         .options(opt.getOptions())
-                        // .correct(opt.isCorrect())
                         .build()
         ).collect(Collectors.toList());
 
         return QuestionResponseDto.builder()
-                // .questionId(savedQuestion.getQuestionId())
-               // .questionType(savedQuestion.getQuestionType())
                 .question(savedQuestion.getQuestion())
-                //.answer(savedQuestion.getAnswer())
-                //.mark(savedQuestion.getMark())
-                // .quizId(savedQuestion.getQuiz().getQuizId())
                 .optionsList(optionResponses)
                 .build();
     }
 
     @Override
     public List<Question> getAllQuestionOfQuiz(Long quizId) {
+        logger.info("Fetching all questions for quiz ID: {}", quizId);
+        List<Question> questions = questionRepository.findByQuizQuizId(quizId);
 
-        List<Question> quiz = questionRepository.findByQuizQuizId(quizId);
-        return quiz;
+        if (questions.isEmpty()) {
+            logger.warn("No questions found for quiz ID: {}", quizId);
+        } else {
+            logger.debug("Total questions found: {}", questions.size());
+        }
+
+        return questions;
     }
 
     @Override
     public List<QuestionResponseDto> getAllQuestionsWithOptionsOfQuiz(Long quizId) {
+        logger.info("Fetching questions with options for quiz ID: {}", quizId);
         List<Question> questions = questionRepository.findByQuizQuizId(quizId);
 
         return questions.stream().map(question -> {
             List<OptionResponseDto> optionResponses = question.getOptionsList().stream().map(opt ->
                     OptionResponseDto.builder()
-                            //.optionId(opt.getOptionId())
                             .options(opt.getOptions())
-                            //.correct(opt.isCorrect())
                             .build()
             ).collect(Collectors.toList());
 
             return QuestionResponseDto.builder()
-                    //.questionId(question.getQuestionId())
-                    //.questionType(question.getQuestionType())
                     .question(question.getQuestion())
-                    //.answer(question.getAnswer())
-                    //.mark(question.getMark())
-                    //.quizId(question.getQuiz().getQuizId())
                     .optionsList(optionResponses)
                     .build();
         }).collect(Collectors.toList());
@@ -115,38 +116,36 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public String deleteQuestion(Long questionId) {
+        logger.info("Deleting question with ID: {}", questionId);
+
+        if (!questionRepository.existsById(questionId)) {
+            logger.warn("Question not found with ID: {}", questionId);
+            throw new QuestionNotFoundException("Question not found with ID: " + questionId);
+        }
+
         questionRepository.deleteById(questionId);
+        logger.info("Question deleted successfully with ID: {}", questionId);
         return "Question deleted successfully";
     }
 
 
     public List<QuestionResponseDto> getAllQuestion() {
+        logger.info("Fetching all questions");
 
         List<Question> questions = questionRepository.findAll();
+        logger.debug("Total questions fetched: {}", questions.size());
 
         return questions.stream().map(question -> {
             List<OptionResponseDto> optionResponses = question.getOptionsList().stream().map(opt ->
                     OptionResponseDto.builder()
-                            //.optionId(opt.getOptionId())
                             .options(opt.getOptions())
-                            //.correct(opt.isCorrect())
                             .build()
             ).collect(Collectors.toList());
 
             return QuestionResponseDto.builder()
-                    //.questionId(question.getQuestionId())
-                    //.questionType(question.getQuestionType())
                     .question(question.getQuestion())
-                    //.answer(question.getAnswer())
-                    //.mark(question.getMark())
-                    //.quizId(question.getQuiz().getQuizId())
                     .optionsList(optionResponses)
                     .build();
         }).collect(Collectors.toList());
     }
-
-
-
-
-
 }
