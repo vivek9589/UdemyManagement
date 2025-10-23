@@ -10,6 +10,8 @@ import com.vivek.backend.Management.service.AuthService;
 import com.vivek.backend.Management.service.JWTService;
 import com.vivek.backend.Management.service.SessionService;
 import com.vivek.backend.Management.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,85 +25,91 @@ import java.util.Optional;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    private  UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private SessionService sessionService;
-
-    /*
-    @Autowired
-    private  ModelMapper modelMapper;
-    @Autowired
-    private  PasswordEncoder passwordEncoder;
-
-    */
-    @Autowired
-    private  AuthenticationManager authenticationManager;
-    @Autowired
-    private  JWTService jwtService;  //from your custom class
+    @Autowired private  UserRepository userRepository;
+    @Autowired private UserService userService;
+    @Autowired private SessionService sessionService;
+    @Autowired private  AuthenticationManager authenticationManager;
+    @Autowired private  JWTService jwtService;  //from your custom class
 
     public UserResponseDto signUp(SignupDto signupDto) {
+        logger.info("Attempting signup for email: {}", signupDto.getEmail());
 
-        // Check if a userr already exists with the provided email
+        try {
+            Optional<User> user = Optional.ofNullable(userRepository.findByEmail(signupDto.getEmail()));
+            if (user.isPresent()) {
+                logger.warn("Signup failed: user already exists with email {}", signupDto.getEmail());
+                throw new BadCredentialsException("Cannot signup, User already exists with email " + signupDto.getEmail());
+            }
 
-        Optional<User> user = Optional.ofNullable(userRepository
-                .findByEmail(signupDto.getEmail()));
+            /*
+            User mappedUser = modelMapper.map(signupDto, User.class);
+            mappedUser.setPassword(passwordEncoder.encode(mappedUser.getPassword()));
+            User savedUser = userRepository.save(mappedUser);
+            */
 
-        if(user.isPresent()) throw new BadCredentialsException("Cannot signup, User already exists with email "+signupDto.getEmail());
+            User userr = User.builder()
+                    .firstName(signupDto.getFirstName())
+                    .lastName(signupDto.getLastName())
+                    .email(signupDto.getEmail())
+                    .password(signupDto.getPassword())
+                    .build();
 
-        // Map SignupDto to UserEntity and encode the password
-/*
-        User mappedUser = modelMapper.map(signupDto,User.class);
-        mappedUser.setPassword(passwordEncoder.encode(mappedUser.getPassword()));
+            User savedUser = userRepository.save(userr);
+            logger.info("User signed up successfully with ID: {}", savedUser.getUserId());
 
-        // Save the userr entity to the database
-        User savedUser = userRepository.save(mappedUser);*/
-        User userr = User.builder()
-                .firstName(signupDto.getFirstName())
-                .lastName(signupDto.getLastName())
-                .email(signupDto.getEmail())
-                .password(signupDto.getPassword())
-                .build();
+            return UserResponseDto.builder()
+                    .id(savedUser.getUserId())
+                    .fullName(savedUser.getFirstName() + " " + savedUser.getLastName())
+                    .email(savedUser.getEmail())
+                    .role(savedUser.getRole())
+                    .build();
 
-
-        User savedUser = userRepository.save(userr);
-
-        return UserResponseDto.builder()
-                .id(savedUser.getUserId())
-                .fullName(savedUser.getFirstName() + " " + savedUser.getLastName())
-                .email(savedUser.getEmail())
-                .role(savedUser.getRole())
-                .build();
+        } catch (Exception e) {
+            logger.error("Signup failed for email: {}", signupDto.getEmail(), e);
+            throw new RuntimeException("Signup failed: " + e.getMessage());
+        }
     }
+
+
 
 
     public LoginResponseDto logIn(LoginDto loginDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword())
-        );
+        logger.info("Attempting login for email: {}", loginDto.getEmail());
 
-       //  User user = (User) authentication.getPrincipal();
-        User user = userRepository.findByEmail(loginDto.getEmail());
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
+            );
 
+            User user = userRepository.findByEmail(loginDto.getEmail());
+            if (user == null) {
+                logger.warn("Login failed: user not found with email {}", loginDto.getEmail());
+                throw new BadCredentialsException("Invalid credentials");
+            }
 
-        String accessToken = jwtService.createAccessToken(user.getEmail());
-        String refreshToken = jwtService.createRefreshToken(user.getEmail());
+            String accessToken = jwtService.createAccessToken(user.getEmail());
+            String refreshToken = jwtService.createRefreshToken(user.getEmail());
 
-        sessionService.generateNewSession(user,refreshToken);
+            sessionService.generateNewSession(user, refreshToken);
+            logger.info("Login successful for user ID: {}", user.getUserId());
 
-        // return new LoginResponseDto(user.getId(),accessToken,refreshToken);
-        return LoginResponseDto.builder()
-                .id(user.getUserId())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+            return LoginResponseDto.builder()
+                    .id(user.getUserId())
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
 
-
+        } catch (BadCredentialsException e) {
+            logger.warn("Authentication failed for email: {}", loginDto.getEmail());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Login error for email: {}", loginDto.getEmail(), e);
+            throw new RuntimeException("Login failed: " + e.getMessage());
+        }
     }
+
 /*
 
     public String logIn(LoginDto loginDto) {
@@ -138,13 +146,24 @@ public class AuthServiceImpl implements AuthService {
         // if valid then we can generate new access token
         // otherwise we have to ask user to login again
 
-        String email = jwtService.extractUserName(refreshToken);
+        logger.info("Refreshing access token using refresh token");
 
-        String accessToken = jwtService.createAccessToken(email);
+        try {
+            String email = jwtService.extractUserName(refreshToken);
+            String accessToken = jwtService.createAccessToken(email);
 
-        return new LoginResponseDto((long)1,accessToken,refreshToken);
+            logger.info("Access token refreshed for email: {}", email);
+            return new LoginResponseDto((long) 1, accessToken, refreshToken);
 
+        } catch (Exception e) {
+            logger.error("Failed to refresh token", e);
+            throw new RuntimeException("Refresh token failed: " + e.getMessage());
+        }
     }
 
 
+
 }
+
+
+

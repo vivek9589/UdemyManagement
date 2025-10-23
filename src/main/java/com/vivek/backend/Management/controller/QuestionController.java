@@ -5,6 +5,8 @@ import com.vivek.backend.Management.dto.QuestionRequestDto;
 import com.vivek.backend.Management.dto.QuestionResponseDto;
 import com.vivek.backend.Management.entity.Question;
 import com.vivek.backend.Management.service.QuestionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,51 +16,41 @@ import java.util.List;
 @RequestMapping("/question")
 public class QuestionController {
 
-
     private final QuestionService questionService;
 
     public QuestionController(QuestionService questionService) {
         this.questionService = questionService;
     }
 
-
-    // add /create question
-
+    // Create a question
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('QUESTION_CREATE')")
-    public QuestionResponseDto createQuestion(@RequestBody QuestionRequestDto dto){
-        return questionService.createQuestion(dto);
+    public ResponseEntity<QuestionResponseDto> createQuestion(@RequestBody QuestionRequestDto dto) {
+        QuestionResponseDto createdQuestion = questionService.createQuestion(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdQuestion); // 201 Created
     }
 
-
-    // get all question of quiz
-    // http://localhost:8080/question/quiz/1
+    // Get all questions of a quiz
     @GetMapping("/quiz/{quizId}")
     @PreAuthorize("hasAuthority('QUESTION_READ')")
-    public List<Question> getAllQuestionOfQuiz(@PathVariable Long quizId) {
-
-            return questionService.getAllQuestionOfQuiz(quizId);
+    public ResponseEntity<List<Question>> getAllQuestionOfQuiz(@PathVariable Long quizId) {
+        List<Question> questions = questionService.getAllQuestionOfQuiz(quizId);
+        return ResponseEntity.ok(questions); // 200 OK
     }
 
-
-    // delete question by question id
+    // Delete question by ID
     @DeleteMapping("/delete/{questionId}")
     @PreAuthorize("hasAuthority('QUESTION_DELETE')")
-    public String deleteQuestion(@PathVariable Long questionId) {
-        return questionService.deleteQuestion(questionId);
+    public ResponseEntity<?> deleteQuestion(@PathVariable Long questionId) {
+        String result = questionService.deleteQuestion(questionId);
+        return ResponseEntity.ok(result); // 200 OK
     }
 
-
-
-        // get all questions with options of quiz
+    // Get all questions with options of a quiz
     @GetMapping("/options/{quizId}")
     @PreAuthorize("hasAuthority('QUESTION_READ')")
-    public List<QuestionResponseDto> getAllQuestionsWithOptionsOfQuiz(@PathVariable Long quizId) {
-        return questionService.getAllQuestionsWithOptionsOfQuiz(quizId);
+    public ResponseEntity<List<QuestionResponseDto>> getAllQuestionsWithOptionsOfQuiz(@PathVariable Long quizId) {
+        List<QuestionResponseDto> questionsWithOptions = questionService.getAllQuestionsWithOptionsOfQuiz(quizId);
+        return ResponseEntity.ok(questionsWithOptions); // 200 OK
     }
-
-
-
-    
-
 }

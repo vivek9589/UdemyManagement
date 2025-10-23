@@ -9,6 +9,8 @@ import com.vivek.backend.Management.dto.CourseRequestDto;
 import com.vivek.backend.Management.dto.CourseResponseDto;
 import com.vivek.backend.Management.service.CourseService;
 import com.vivek.backend.Management.vo.CourseVO;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +35,7 @@ public class CourseController {
 
     @PreAuthorize("hasAuthority('COURSE_CREATE')")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
-    public CourseResponseDto createCourse(
+    public ResponseEntity<CourseResponseDto> createCourse(
             @RequestPart("course") String course,
             @RequestPart("file") MultipartFile file,
             @RequestPart("folder") String folder
@@ -42,8 +44,8 @@ public class CourseController {
         // Convert JSON string to your desired Java object
         CourseRequestDto dataObject = objectMapper.readValue(course, CourseRequestDto.class);
 
-        return  courseService.createCourse(dataObject, file, folder);
-
+        CourseResponseDto createdCourse = courseService.createCourse(dataObject, file, folder);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
     }
 
 
@@ -52,9 +54,10 @@ public class CourseController {
 
     @PreAuthorize("hasAuthority('COURSE_READ')")
     @GetMapping("/all")
-    public List<CourseResponseDto> getAllCourse()
+    public ResponseEntity<List<CourseResponseDto>> getAllCourse()
     {
-        return courseService.getAllCourse();
+        List<CourseResponseDto> courses = courseService.getAllCourse();
+        return ResponseEntity.ok(courses);
     }
 
 
@@ -62,9 +65,10 @@ public class CourseController {
 
     @PreAuthorize("hasAuthority('COURSE_READ')")
     @GetMapping("/content/{id}")
-    public CourseVO getCourseById(@PathVariable Long id)
+    public ResponseEntity<CourseVO> getCourseById(@PathVariable Long id)
     {
-        return courseService.getCourseById(id);
+        CourseVO course = courseService.getCourseById(id);
+        return ResponseEntity.ok(course);
     }
 
 
@@ -73,9 +77,10 @@ public class CourseController {
 
     @PreAuthorize("hasAuthority('COURSE_DELETE')")
     @DeleteMapping("/delete/{id}")
-    public String deleteCourseById(@PathVariable Long id)
+    public ResponseEntity<String> deleteCourseById(@PathVariable Long id)
     {
-        return courseService.deleteCourseById(id);
+        String result = courseService.deleteCourseById(id);
+        return ResponseEntity.ok(result);
     }
 
 

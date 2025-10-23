@@ -10,9 +10,6 @@ import java.util.List;
 
 public interface CourseService {
 
-
-    // CRUD OPERATION FOR Course
-
     // create course
     public CourseResponseDto createCourse(CourseRequestDto course,MultipartFile file, String folder);
 
